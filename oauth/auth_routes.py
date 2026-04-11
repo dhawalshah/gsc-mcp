@@ -20,6 +20,12 @@ SCOPES = [
 ]
 
 ALLOWED_DOMAIN = os.environ.get("ALLOWED_DOMAIN", "")
+if not ALLOWED_DOMAIN:
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "ALLOWED_DOMAIN is not set — any Google account can authenticate. "
+        "Set ALLOWED_DOMAIN=yourcompany.com to restrict access."
+    )
 CLIENT_CONFIG_PATH = os.environ.get("OAUTH_CONFIG_PATH", "./client_secret.json")
 BASE_URL = os.environ.get("BASE_URL", "")
 
@@ -79,7 +85,7 @@ async def status(request: Request):
     if not email:
         return HTMLResponse("<h2>Not logged in</h2><a href='/auth/login'><button>Login with Google</button></a>")
     return HTMLResponse(
-        f"<h2>Logged in as {email}</h2>"
+        f"<h2>Logged in as {html.escape(email)}</h2>"
         f"<p>Connect Claude to this MCP server.</p>"
         f"<p><a href='/auth/logout'>Logout</a></p>"
     )

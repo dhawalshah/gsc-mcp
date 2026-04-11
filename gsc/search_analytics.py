@@ -105,7 +105,6 @@ def compare_periods(
     current_end: str,
     previous_start: str,
     previous_end: str,
-    dimensions: Optional[List[str]] = None,
     search_type: str = "web",
 ) -> Dict:
     """Compare search performance between two date periods.
@@ -114,7 +113,6 @@ def compare_periods(
         site_url: Property URL
         current_start / current_end: Current period (YYYY-MM-DD)
         previous_start / previous_end: Comparison period (YYYY-MM-DD)
-        dimensions: Dimensions to group by (optional)
         search_type: One of: web, image, video, news, discover, googleNews
     """
     _audit("compare_periods", site_url)
@@ -124,8 +122,6 @@ def compare_periods(
             "startDate": start, "endDate": end,
             "searchType": search_type, "rowLimit": 1,
         }
-        if dimensions:
-            body["dimensions"] = dimensions
         return gsc_post(f"sites/{_encode_site(site_url)}/searchAnalytics/query", body, site_url)
 
     def _summarize(resp):

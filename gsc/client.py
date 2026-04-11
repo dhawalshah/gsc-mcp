@@ -1,5 +1,4 @@
 """Shared GSC API client: request helpers, response formatter, rate limiter, audit log."""
-import html
 import json
 import logging
 import time
@@ -36,6 +35,7 @@ def _check_rate_limit(email: str):
 
 def _audit(tool: str, site_url: str = ""):
     email = current_user_email.get() or "local"
+    _check_rate_limit(email)
     logger.info(json.dumps({
         "tool": tool,
         "site_url": site_url,
@@ -51,8 +51,6 @@ def _encode_site(site_url: str) -> str:
 
 def gsc_get(path: str, params: Optional[Dict] = None, site_url: str = "") -> Dict:
     """GET request to GSC webmasters API."""
-    email = current_user_email.get() or ""
-    _check_rate_limit(email)
     headers = get_headers_with_auto_token()
     url = f"{GSC_BASE}/{path}"
     resp = requests.get(url, headers=headers, params=params or {})
@@ -62,8 +60,6 @@ def gsc_get(path: str, params: Optional[Dict] = None, site_url: str = "") -> Dic
 
 def gsc_post(path: str, body: Dict, site_url: str = "") -> Dict:
     """POST request to GSC webmasters API."""
-    email = current_user_email.get() or ""
-    _check_rate_limit(email)
     headers = get_headers_with_auto_token()
     headers["Content-Type"] = "application/json"
     url = f"{GSC_BASE}/{path}"
@@ -74,8 +70,6 @@ def gsc_post(path: str, body: Dict, site_url: str = "") -> Dict:
 
 def gsc_put(path: str, site_url: str = "") -> Dict:
     """PUT request to GSC webmasters API (for add site / submit sitemap)."""
-    email = current_user_email.get() or ""
-    _check_rate_limit(email)
     headers = get_headers_with_auto_token()
     url = f"{GSC_BASE}/{path}"
     resp = requests.put(url, headers=headers)
@@ -85,8 +79,6 @@ def gsc_put(path: str, site_url: str = "") -> Dict:
 
 def gsc_delete(path: str, site_url: str = "") -> Dict:
     """DELETE request to GSC webmasters API."""
-    email = current_user_email.get() or ""
-    _check_rate_limit(email)
     headers = get_headers_with_auto_token()
     url = f"{GSC_BASE}/{path}"
     resp = requests.delete(url, headers=headers)
@@ -96,8 +88,6 @@ def gsc_delete(path: str, site_url: str = "") -> Dict:
 
 def inspect_post(body: Dict) -> Dict:
     """POST request to URL Inspection API v1."""
-    email = current_user_email.get() or ""
-    _check_rate_limit(email)
     headers = get_headers_with_auto_token()
     headers["Content-Type"] = "application/json"
     url = f"{INSPECT_BASE}/urlInspection/index:inspect"

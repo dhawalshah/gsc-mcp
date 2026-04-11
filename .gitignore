@@ -1,1 +1,14 @@
 .worktrees/
+.env
+client_secret.json
+*_token.json
+token.json
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.DS_Store
