@@ -121,6 +121,7 @@ A Python MCP server that connects Claude (or any MCP-compatible AI client) direc
 |---|---|---|
 | `GCP_PROJECT_ID` | Cloud Run only | Your Google Cloud project ID |
 | `OAUTH_CONFIG_PATH` | Yes | Full path to your `client_secret.json` file |
+| `MCP_USER_EMAIL` | No (STDIO mode only) | Your Google account email (STDIO local mode only) |
 | `ALLOWED_DOMAIN` | Cloud Run only | Restrict logins to a specific Google Workspace domain (e.g. `company.com`) |
 | `BASE_URL` | Cloud Run only | Public URL of the deployed service (e.g. `https://gsc-mcp-123.asia-southeast1.run.app`) |
 | `SESSION_SECRET_KEY` | Cloud Run only | Random secret key for signing session cookies |

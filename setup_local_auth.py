@@ -89,8 +89,17 @@ def main():
     TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
     TOKEN_PATH.write_text(creds.to_json())
     print(f"\nToken saved to: {TOKEN_PATH}")
-    print("\nAdd to Claude Desktop MCP config:")
-    print('  "env": { "MCP_USER_EMAIL": "you@company.com", "OAUTH_CONFIG_PATH": "/path/to/client_secret.json" }')
+    print("\nAdd to Claude Desktop MCP config in claude_desktop_config.json:")
+    print("""
+  "google-search-console": {
+    "command": "python",
+    "args": ["/path/to/google-search-console-mcp/server.py"],
+    "env": {
+      "OAUTH_CONFIG_PATH": "/path/to/client_secret.json",
+      "MCP_USER_EMAIL": "you@company.com"
+    }
+  }
+""")
 
 
 if __name__ == "__main__":
