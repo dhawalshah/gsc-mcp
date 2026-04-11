@@ -1,0 +1,71 @@
+{
+  "dxt_version": "0.1",
+  "name": "google-search-console-mcp",
+  "display_name": "Google Search Console MCP",
+  "version": "1.0.0",
+  "description": "A Python MCP server for Google Search Console API with OAuth 2.0 authentication",
+  "long_description": "Connect Claude (or any MCP-compatible AI client) directly to your Google Search Console properties. Supports search analytics, URL inspection, sitemap management, and composite analysis tools for SEO teams. Runs locally via STDIO or as a shared team server on Google Cloud Run.",
+  "author": {
+    "name": "Dhawal Shah",
+    "url": "https://github.com/dhawalshah"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["${__dirname}/server.py"],
+      "env": {
+        "OAUTH_CONFIG_PATH": "${user_config.oauth_config_path}",
+        "MCP_USER_EMAIL": "${user_config.mcp_user_email}",
+        "PYTHONPATH": "${__dirname}/lib"
+      },
+      "cwd": "${__dirname}"
+    }
+  },
+  "tools": [
+    {"name": "list_properties", "description": "List all GSC properties with permission levels"},
+    {"name": "get_site_details", "description": "Get details for a specific GSC property"},
+    {"name": "add_site", "description": "Add a new property to GSC"},
+    {"name": "delete_site", "description": "Remove a property from GSC"},
+    {"name": "get_search_analytics", "description": "Query search analytics with dimensions and filters"},
+    {"name": "get_performance_overview", "description": "Get clicks/impressions/CTR/position summary"},
+    {"name": "compare_periods", "description": "Compare performance between two date periods"},
+    {"name": "get_position_band_report", "description": "Filter pages by position band (1-3, 4-10, 11-20)"},
+    {"name": "get_ctr_optimization_report", "description": "Find pages with high impressions but low CTR"},
+    {"name": "get_keyword_cannibalization", "description": "Identify queries with multiple competing pages"},
+    {"name": "batch_search_analytics", "description": "Run multiple analytics queries in one call"},
+    {"name": "export_full_dataset", "description": "Export all rows bypassing 5K row limit"},
+    {"name": "inspect_url", "description": "Inspect a URL for indexing, mobile usability, and rich results"},
+    {"name": "batch_url_inspection", "description": "Inspect multiple URLs at once"},
+    {"name": "list_sitemaps", "description": "List sitemaps with health classification"},
+    {"name": "get_sitemap", "description": "Get details for a specific sitemap"},
+    {"name": "submit_sitemap", "description": "Submit a sitemap to GSC"},
+    {"name": "delete_sitemap", "description": "Remove a sitemap from GSC"},
+    {"name": "analyze_site_health", "description": "One-call site health report: traffic + indexing + mobile"},
+    {"name": "identify_quick_wins", "description": "Find pages worth optimizing (high impressions, low CTR, ranked 4-10)"},
+    {"name": "crawl_error_summary", "description": "Aggregate indexing and mobile errors across a property"},
+    {"name": "property_migration_checklist", "description": "Checklist for safely migrating a site"}
+  ],
+  "keywords": ["google", "search-console", "gsc", "seo", "analytics", "indexing", "sitemap", "oauth"],
+  "license": "MIT",
+  "user_config": {
+    "oauth_config_path": {
+      "type": "string",
+      "title": "OAuth Configuration Path",
+      "description": "Full path to your Google Cloud OAuth 2.0 client credentials JSON file",
+      "required": true
+    },
+    "mcp_user_email": {
+      "type": "string",
+      "title": "Your Google Account Email",
+      "description": "Your Google account email — used to identify your stored credentials",
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {"python": ">=3.10.0 <4"}
+  }
+}
