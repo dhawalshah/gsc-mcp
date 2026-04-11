@@ -1,4 +1,5 @@
 """Web routes for Google OAuth login flow."""
+import html
 import os
 import logging
 import requests as http_requests
@@ -46,7 +47,7 @@ async def login(request: Request):
 @router.get("/callback")
 async def callback(request: Request, code: str = None, state: str = None, error: str = None):
     if error:
-        return HTMLResponse(f"<h2>Login cancelled: {error}</h2><a href='/auth/login'>Try again</a>")
+        return HTMLResponse(f"<h2>Login cancelled: {html.escape(error)}</h2><a href='/auth/login'>Try again</a>")
     saved_state = request.session.get("oauth_state")
     if not state or state != saved_state:
         return HTMLResponse("<h2>Security error: invalid state.</h2>", status_code=400)
@@ -63,7 +64,7 @@ async def callback(request: Request, code: str = None, state: str = None, error:
     if ALLOWED_DOMAIN and not email.endswith(f"@{ALLOWED_DOMAIN}"):
         return HTMLResponse(
             f"<h2>Access denied.</h2><p>Only @{ALLOWED_DOMAIN} accounts allowed.</p>"
-            f"<p>Logged in as: {email}</p>",
+            f"<p>Logged in as: {html.escape(email)}</p>",
             status_code=403,
         )
     save_token(email, creds)
