@@ -3,7 +3,7 @@ import logging
 import os
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import Response
+from fastapi.responses import Response, RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from server import mcp
@@ -50,6 +50,13 @@ async def require_login_for_mcp(request: Request, call_next):
             return Response("Unauthorized. Visit /auth/login first.", status_code=401)
         current_user_email.set(email)
     return await call_next(request)
+
+
+@app.api_route("/mcp", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
+async def mcp_redirect(request: Request):
+    """Redirect /mcp → /mcp/ preserving method and query string (307 keeps POST body)."""
+    url = str(request.url).replace("/mcp", "/mcp/", 1)
+    return RedirectResponse(url=url, status_code=307)
 
 
 app.mount("/mcp", mcp_asgi_app)
