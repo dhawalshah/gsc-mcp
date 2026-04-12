@@ -122,15 +122,19 @@ def identify_quick_wins(
         return format_error(str(e))
 
 
+MAX_CRAWL_SAMPLE = 50
+
+
 def crawl_error_summary(site_url: str, start_date: str, end_date: str, sample_size: int = 50) -> Dict:
     """Aggregate crawl and indexing errors across a property's sampled pages.
 
     Args:
         site_url: Property URL
         start_date / end_date: Date range (YYYY-MM-DD)
-        sample_size: Number of pages to inspect (default: 50)
+        sample_size: Number of pages to inspect (default: 50, max: 50)
     """
     _audit("crawl_error_summary", site_url)
+    sample_size = min(sample_size, MAX_CRAWL_SAMPLE)
     body = {
         "startDate": start_date, "endDate": end_date,
         "dimensions": ["page"], "searchType": "web",

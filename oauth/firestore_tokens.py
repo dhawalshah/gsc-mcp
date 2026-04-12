@@ -12,7 +12,10 @@ COLLECTION = "user_tokens_gsc"
 
 
 def _db():
-    return firestore.Client(project=os.environ["GCP_PROJECT_ID"])
+    project = os.environ.get("GCP_PROJECT_ID")
+    if not project:
+        raise RuntimeError("GCP_PROJECT_ID environment variable is not set.")
+    return firestore.Client(project=project)
 
 
 def save_token(user_email: str, creds: Credentials):
