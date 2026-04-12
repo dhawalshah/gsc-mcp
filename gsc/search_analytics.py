@@ -356,6 +356,9 @@ def batch_search_analytics(queries: List[Dict]) -> Dict:
     return format_response({"results": results, "total_queries": len(queries)})
 
 
+EXPORT_MAX_ROWS_CAP = 100_000
+
+
 def export_full_dataset(
     site_url: str,
     start_date: str,
@@ -371,8 +374,9 @@ def export_full_dataset(
         start_date / end_date: Date range (YYYY-MM-DD)
         dimensions: Dimensions to include (default: ['query', 'page'])
         search_type: Search type filter
-        max_rows: Maximum total rows to fetch (default: 50000)
+        max_rows: Maximum total rows to fetch (default: 50000, max: 100000)
     """
+    max_rows = min(max_rows, EXPORT_MAX_ROWS_CAP)
     _audit("export_full_dataset", site_url)
     dimensions = dimensions or ["query", "page"]
     all_rows = []

@@ -9,6 +9,16 @@ from google_auth_oauthlib.flow import Flow
 
 from .firestore_tokens import save_token
 
+_SECURITY_HEADERS = {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'none'",
+}
+
+
+def _html(content: str, status_code: int = 200) -> HTMLResponse:
+    return HTMLResponse(content, status_code=status_code, headers=_SECURITY_HEADERS)
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -53,10 +63,10 @@ async def login(request: Request):
 @router.get("/callback")
 async def callback(request: Request, code: str = None, state: str = None, error: str = None):
     if error:
-        return HTMLResponse(f"<h2>Login cancelled: {html.escape(error)}</h2><a href='/auth/login'>Try again</a>")
+        return _html(f"<h2>Login cancelled: {html.escape(error)}</h2><a href='/auth/login'>Try again</a>")
     saved_state = request.session.get("oauth_state")
     if not state or state != saved_state:
-        return HTMLResponse("<h2>Security error: invalid state.</h2>", status_code=400)
+        return _html("<h2>Security error: invalid state.</h2>", status_code=400)
     code_verifier = request.session.get("code_verifier")
     flow = _make_flow(state=state)
     flow.code_verifier = code_verifier
@@ -67,9 +77,10 @@ async def callback(request: Request, code: str = None, state: str = None, error:
         headers={"Authorization": f"Bearer {creds.token}"},
     ).json()
     email = user_info.get("email", "")
-    if ALLOWED_DOMAIN and not email.endswith(f"@{ALLOWED_DOMAIN}"):
-        return HTMLResponse(
-            f"<h2>Access denied.</h2><p>Only @{ALLOWED_DOMAIN} accounts allowed.</p>"
+    domain_part = email.split("@")[-1].lower() if "@" in email else ""
+    if ALLOWED_DOMAIN and domain_part != ALLOWED_DOMAIN.lower():
+        return _html(
+            f"<h2>Access denied.</h2><p>Only @{html.escape(ALLOWED_DOMAIN)} accounts allowed.</p>"
             f"<p>Logged in as: {html.escape(email)}</p>",
             status_code=403,
         )
@@ -83,8 +94,8 @@ async def callback(request: Request, code: str = None, state: str = None, error:
 async def status(request: Request):
     email = request.session.get("user_email")
     if not email:
-        return HTMLResponse("<h2>Not logged in</h2><a href='/auth/login'><button>Login with Google</button></a>")
-    return HTMLResponse(
+        return _html("<h2>Not logged in</h2><a href='/auth/login'><button>Login with Google</button></a>")
+    return _html(
         f"<h2>Logged in as {html.escape(email)}</h2>"
         f"<p>Connect Claude to this MCP server.</p>"
         f"<p><a href='/auth/logout'>Logout</a></p>"
@@ -94,4 +105,4 @@ async def status(request: Request):
 @router.get("/logout")
 async def logout(request: Request):
     request.session.clear()
-    return HTMLResponse("<h2>Logged out.</h2><a href='/auth/login'>Login again</a>")
+    return _html("<h2>Logged out.</h2><a href='/auth/login'>Login again</a>")

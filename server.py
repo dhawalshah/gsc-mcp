@@ -62,3 +62,6 @@ mcp.tool(analyze_site_health)
 mcp.tool(identify_quick_wins)
 mcp.tool(crawl_error_summary)
 mcp.tool(property_migration_checklist)
+
+if __name__ == "__main__":
+    mcp.run()

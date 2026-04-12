@@ -1,6 +1,6 @@
 .worktrees/
 .env
-client_secret.json
+client_secret*.json
 *_token.json
 token.json
 __pycache__/

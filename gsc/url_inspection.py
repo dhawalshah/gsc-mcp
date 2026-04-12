@@ -51,14 +51,18 @@ def inspect_url(url: str, site_url: str) -> Dict:
         return format_error(str(e))
 
 
+MAX_BATCH_URLS = 20
+
+
 def batch_url_inspection(urls: List[str], site_url: str) -> Dict:
     """Inspect multiple URLs for indexing status, mobile usability, and rich results.
 
     Args:
-        urls: List of page URLs to inspect (max 50 recommended per call)
+        urls: List of page URLs to inspect (max 20 per call)
         site_url: The GSC property URL
     """
     _audit("batch_url_inspection", site_url)
+    urls = urls[:MAX_BATCH_URLS]
     results = []
     for url in urls:
         try:
