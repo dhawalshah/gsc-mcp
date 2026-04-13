@@ -171,7 +171,7 @@ For individual use or local testing without Cloud Run.
 - **Domain restriction:** Set `ALLOWED_DOMAIN` to your Google Workspace domain. Any Google account outside that domain is rejected at login.
 - **`?user=` parameter:** Non-browser MCP clients (Claude Desktop) pass identity via `?user=email`. With `ALLOWED_DOMAIN` set, only emails on your domain are accepted. For maximum security, ensure all team members have logged in before sharing the MCP URL.
 - **Session security:** `SESSION_SECRET_KEY` must be set to a strong random value in production. The server refuses to start in Cloud Run without it.
-- **Secrets:** `client_secret.json` is excluded from both `.gitignore` and `.dockerignore`. Never commit it.
+- **Secrets:** `client_secret.json` is excluded from `.gitignore` — never commit it to source control. It is intentionally included in the Docker image (not in `.dockerignore`) so the deployed server can use it.
 - **Rate limiting:** 10 requests/minute per user per tool invocation (in-process; for multi-instance Cloud Run deployments, consider moving state to Firestore or Redis).
 
 ---

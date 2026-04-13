@@ -1,4 +1,3 @@
-client_secret*.json
 .env
 *_token.json
 token.json
