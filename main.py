@@ -1,65 +1,87 @@
-"""Google Search Console MCP Server — FastAPI wrapper with OAuth and SSE transport."""
-import logging
+"""
+Google Search Console MCP Server.
+
+The MCP endpoint at /mcp is an OAuth 2.1 protected resource. The server
+also acts as the authorization server for it (see oauth/oauth_server.py),
+proxying user authentication to Google.
+
+Auth flow for MCP clients (Claude, etc.):
+
+  1. Client GETs /mcp without a token → 401 + WWW-Authenticate
+  2. Client follows the protected-resource metadata link, registers with
+     the authorization server (Dynamic Client Registration), and runs the
+     OAuth 2.1 authorization code flow with PKCE.
+  3. Client receives an opaque bearer issued by this server and includes
+     it on every /mcp request.
+  4. Middleware here validates the bearer, looks up the user's stored
+     Google credentials, and sets a ContextVar consumed by the GSC tools.
+"""
+
 import os
+import logging
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import Response, RedirectResponse
-from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import Response, JSONResponse
 
 from server import mcp
-from oauth.auth_routes import router as auth_router, ALLOWED_DOMAIN
+from oauth.oauth_server import router as oauth_router, resolve_bearer
 from oauth.google_auth import current_user_email
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 
-BASE_URL = os.environ.get("BASE_URL", "")
-
-_SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", "")
-_INSECURE_DEFAULT = "dev-secret-change-me"
-if not _SESSION_SECRET_KEY or _SESSION_SECRET_KEY == _INSECURE_DEFAULT:
-    if os.environ.get("GCP_PROJECT_ID"):
-        # Running in Cloud Run / production — refuse to start with no/default secret
-        raise RuntimeError(
-            "SESSION_SECRET_KEY must be set to a strong random value in production. "
-            "Generate one with: python3 -c \"import secrets; print(secrets.token_hex(32))\""
-        )
-    else:
-        # Local dev — warn only
-        logger.warning("SESSION_SECRET_KEY not set — using insecure default. Set it for any shared deployment.")
-        _SESSION_SECRET_KEY = _INSECURE_DEFAULT
-
-mcp_asgi_app = mcp.http_app(path="/")
+mcp_asgi_app = mcp.http_app(path="/mcp")
 app = FastAPI(lifespan=mcp_asgi_app.lifespan, redirect_slashes=False)
 
-app.add_middleware(SessionMiddleware, secret_key=_SESSION_SECRET_KEY)
-app.include_router(auth_router, prefix="/auth")
+app.include_router(oauth_router)
+
+
+@app.get("/")
+async def root():
+    base = os.environ.get("BASE_URL", "").rstrip("/")
+    return JSONResponse({
+        "name": "Google Search Console MCP",
+        "mcp_endpoint": f"{base}/mcp" if base else "/mcp",
+        "protected_resource_metadata": f"{base}/.well-known/oauth-protected-resource",
+    })
+
+
+def _unauthorized() -> Response:
+    base = os.environ.get("BASE_URL", "").rstrip("/")
+    metadata_url = f"{base}/.well-known/oauth-protected-resource"
+    return Response(
+        content='{"error":"unauthorized"}',
+        status_code=401,
+        media_type="application/json",
+        headers={
+            "WWW-Authenticate": (
+                f'Bearer realm="mcp", '
+                f'resource_metadata="{metadata_url}", '
+                f'error="invalid_token"'
+            )
+        },
+    )
 
 
 @app.middleware("http")
-async def require_login_for_mcp(request: Request, call_next):
-    if request.url.path.startswith("/mcp"):
-        email = request.query_params.get("user")
-        # Validate ?user= email against the allowed domain before trusting it
-        if email and ALLOWED_DOMAIN:
-            domain_part = email.split("@")[-1].lower() if "@" in email else ""
-            if domain_part != ALLOWED_DOMAIN.lower():
-                return Response("Unauthorized: email domain not allowed.", status_code=403)
-        if not email:
-            email = request.session.get("user_email")
-        if not email:
-            return Response("Unauthorized. Visit /auth/login first.", status_code=401)
-        current_user_email.set(email)
+async def authenticate_mcp(request: Request, call_next):
+    path = request.url.path
+    if path != "/mcp" and not path.startswith("/mcp/"):
+        return await call_next(request)
+
+    auth = request.headers.get("authorization", "")
+    if not auth.lower().startswith("bearer "):
+        return _unauthorized()
+
+    access_token = auth.split(" ", 1)[1].strip()
+    record = resolve_bearer(access_token)
+    if not record:
+        return _unauthorized()
+
+    current_user_email.set(record["user_email"])
     return await call_next(request)
 
 
-@app.api_route("/mcp", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
-async def mcp_redirect(request: Request):
-    """Redirect /mcp → /mcp/ preserving method and query string (307 keeps POST body)."""
-    url = str(request.url).replace("/mcp", "/mcp/", 1)
-    return RedirectResponse(url=url, status_code=307)
-
-
-app.mount("/mcp", mcp_asgi_app)
+app.mount("/", mcp_asgi_app)
 
 
 if __name__ == "__main__":

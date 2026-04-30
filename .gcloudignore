@@ -1,5 +1,7 @@
+# Cloud Run build ignore
 .gcloudignore
 .git
+.gitignore
 .worktrees/
 .env
 *_token.json
@@ -13,4 +15,8 @@ venv/
 dist/
 build/
 .DS_Store
+docs/
 tests/
+
+# Secret is mounted from Secret Manager at runtime — never bake into image
+client_secret*.json

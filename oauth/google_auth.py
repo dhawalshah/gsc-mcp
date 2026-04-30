@@ -54,7 +54,10 @@ def get_headers_with_auto_token() -> Dict[str, str]:
     if email:
         creds = load_token(email, SCOPES)
         if not creds:
-            raise ValueError(f"No valid token for {email}. Visit /auth/login first.")
+            raise ValueError(
+                f"No valid token for {email}. "
+                "Reconnect this MCP server in your client to re-run the Google sign-in."
+            )
         return {"Authorization": f"Bearer {creds.token}"}
 
     local_email = os.environ.get("MCP_USER_EMAIL")
@@ -66,6 +69,6 @@ def get_headers_with_auto_token() -> Dict[str, str]:
 
     raise ValueError(
         "No authenticated user. "
-        "HTTP mode: visit /auth/login. "
-        "STDIO mode: set MCP_USER_EMAIL env var and run setup_local_auth.py."
+        "For local use: set MCP_USER_EMAIL in your Claude Desktop config and run setup_local_auth.py. "
+        "For team server: reconnect from your MCP client to run the OAuth flow."
     )
