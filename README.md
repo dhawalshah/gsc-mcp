@@ -1,5 +1,7 @@
 # Google Search Console MCP
 
+[![dhawalshah/gsc-mcp MCP server](https://glama.ai/mcp/servers/dhawalshah/gsc-mcp/badges/score.svg)](https://glama.ai/mcp/servers/dhawalshah/gsc-mcp)
+
 A Model Context Protocol (MCP) server for Google Search Console. Connect Claude (or any MCP-compatible AI client) directly to your GSC properties to query search performance, inspect URLs, manage sitemaps, find quick wins, and run composite audits — all in natural language.
 
 The server speaks the [MCP authorization spec (2025-06-18)](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization), so it works as a remote connector anywhere Claude supports custom MCP servers — claude.ai (personal), Claude Desktop, and Claude Teams. Add **one URL**, click "Connect", sign in with Google, done. For a Teams plan, the org owner adds the URL once and each member individually authenticates on first use.
