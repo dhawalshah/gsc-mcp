@@ -96,8 +96,8 @@ The server stores OAuth bearer tokens and per-user Google credentials in Firesto
 ## Step 2 — Install
 
 ```bash
-git clone https://github.com/dhawalshah/google-search-console-mcp
-cd google-search-console-mcp
+git clone https://github.com/dhawalshah/gsc-mcp
+cd gsc-mcp
 pip install -r requirements.txt
 cp .env.example .env       # fill in values
 ```
@@ -119,7 +119,7 @@ Then add to `~/Library/Application Support/Claude/claude_desktop_config.json` (m
   "mcpServers": {
     "google-search-console": {
       "command": "python",
-      "args": ["/absolute/path/to/google-search-console-mcp/server.py"],
+      "args": ["/absolute/path/to/gsc-mcp/server.py"],
       "env": {
         "OAUTH_CONFIG_PATH": "/absolute/path/to/client_secret.json",
         "MCP_USER_EMAIL": "you@yourcompany.com"
